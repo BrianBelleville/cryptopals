@@ -83,12 +83,20 @@ def letter_error(string):
             found_freq = freq_dict[key]
         except KeyError:
             found_freq = 0
-        diff = freq - found_freq
-        error += diff * diff
-    return math.sqrt(error / 26)
+        diff = abs(freq - found_freq)
+        error += diff
+    return error
+
+# acording to wolfram alpha, average word length is 5, so about 1/6
+# letters should be spaces
+ideal_space = 1/6
+def space_error(string):
+    b = len(string)
+    a = len(string.replace(b' ', b''))
+    return ideal_space - (b-a)/b
 
 # quantify the error in letter frequency, lower scores are better
 def score(string):
     if contains_non_printable(string):
         return float('+inf')    # worst ever
-    return letter_error(string)
+    return letter_error(string) + space_error(string)
