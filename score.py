@@ -58,13 +58,13 @@ def to_freq_dict(count_dict, total):
         freq_dict[letter] = freq
     return freq_dict
 
-# returns true if string contains characters outside of the printable
-# ascii range
-def contains_non_printable(string):
+# returns +inf if string contains characters outside of the printable
+# ascii range, 0 otherwise
+def contains_non_printable_error(string):
     for char in string:
         if char < 0x20 or char > 0x7e:
-            return True
-    return False
+            return float('+inf')
+    return 0.0
 
 # give this the lowercase letters in plaintext
 def letter_error(string):
@@ -97,6 +97,4 @@ def space_error(string):
 
 # quantify the error in letter frequency, lower scores are better
 def score(string):
-    if contains_non_printable(string):
-        return float('+inf')    # worst ever
-    return letter_error(string) + space_error(string)
+    return letter_error(string) + space_error(string) + contains_non_printable_error(string)
