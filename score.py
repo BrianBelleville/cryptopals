@@ -59,10 +59,10 @@ def to_freq_dict(count_dict, total):
     return freq_dict
 
 # returns +inf if string contains characters outside of the printable
-# ascii range, 0 otherwise
+# ascii range + newline, 0 otherwise
 def contains_non_printable_error(string):
     for char in string:
-        if char < 0x20 or char > 0x7e:
+        if (char < 0x20 or char > 0x7e) and char != 0x0a :
             return float('+inf')
     return 0.0
 
