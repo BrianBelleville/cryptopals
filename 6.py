@@ -24,11 +24,14 @@ def find_key_size(string):
     min_distance = float('+inf')
     size = 0
     for i in range(2,40):
-        d = (byte_hamming_distance(string[0:i], string[i:2*i]) +
-        byte_hamming_distance(string[2*i:3*i])) / (2*i)
+        s = 0
+        for j in range(0,12,2):
+            s += string_hamming_distance(string[i*j:i*(j+1)], string[i*(j+1):i*(j+2)])
+        d = s / i
         if d < min_distance:
             min_distance = d
             size = i
+    return size
 
 def split_string(string, keysize):
     split = []
@@ -40,12 +43,23 @@ def split_string(string, keysize):
 
 def solve_single_key(string):
     min_score = float('+inf')
+    plaintext = ""
     for i in range(0,255):
         p = bytes(map(lambda c: i ^ c, string))
-        # print(p, ".. from ", i)
         s = score.score(p)
         if s < min_score:
             min_score = s
             plaintext = p
     return plaintext
 
+in_file = open(sys.argv[1])
+string = base64.b64decode(in_file.read().replace("\n", ""))
+key_size = find_key_size(string)
+# print("key size:", key_size)
+work = split_string(string, key_size)
+# print(work)
+solve = list(map(solve_single_key, work))
+
+tot_char = len(string)
+out = bytes([x for t in zip(*solve) for x in t])
+print(out.decode())
