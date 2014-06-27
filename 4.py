@@ -22,9 +22,8 @@ def try_decrypt(string):
 
 for line in sys.stdin:
     err, plain = try_decrypt(binascii.a2b_hex(line.strip()))
-    print(plain)
     if(err < min_error):
-        err = min_error
+        min_error = err
         plaintext = plain
 
 print(plaintext)
