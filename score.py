@@ -93,8 +93,19 @@ ideal_space = 1/6
 def space_error(string):
     b = len(string)
     a = len(string.replace(b' ', b''))
-    return ideal_space - (b-a)/b
+    return abs(ideal_space - (b-a)/b)
+
+# penalize strings that contain a large fraction of things that aren't letters or space
+max_non_letter_or_space = 1/10
+def punctuation_error(string):
+    b = len(string)
+    a = len([char for char in string if (char >= 0x41 and char <= 0x7a) or char == 0x20])
+    fraction = (b - a)/b
+    
+    if(fraction > max_non_letter_or_space):
+        return fraction - max_non_letter_or_space
+    return 0.0
 
 # quantify the error in letter frequency, lower scores are better
 def score(string):
-    return letter_error(string) + space_error(string) + contains_non_printable_error(string)
+    return letter_error(string) + space_error(string) + contains_non_printable_error(string) + punctuation_error(string)
