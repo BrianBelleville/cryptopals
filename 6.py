@@ -52,14 +52,25 @@ def solve_single_key(string):
             plaintext = p
     return plaintext
 
+def output(ll):
+    l1 = len(ll)
+    out = []
+    try:
+        i = 0
+        j = 0
+        while True:
+            if i == l1:
+                i = 0
+                j += 1
+            out.append(ll[i][j])
+            i += 1
+    except IndexError:
+        return out
+            
+
 in_file = open(sys.argv[1])
 string = base64.b64decode(in_file.read().replace("\n", ""))
 key_size = find_key_size(string)
-# print("key size:", key_size)
 work = split_string(string, key_size)
-# print(work)
 solve = list(map(solve_single_key, work))
-
-tot_char = len(string)
-out = bytes([x for t in zip(*solve) for x in t])
-print(out.decode())
+print(bytes(output(solve)).decode())
