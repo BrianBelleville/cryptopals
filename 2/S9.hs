@@ -1,7 +1,6 @@
 module S9 ( pkcs7Padding ) where
 
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as L
 import           Data.Word
 
 pkcs7Padding :: B.ByteString -> Int -> B.ByteString
@@ -9,7 +8,7 @@ pkcs7Padding text blocksize = let l = B.length text
                                   rem = if l < blocksize then
                                           blocksize - l
                                         else
-                                          l `mod` blocksize
+                                          blocksize - (l `mod` blocksize)
                                   padlen = if rem == 0 then
                                              blocksize
                                            else
