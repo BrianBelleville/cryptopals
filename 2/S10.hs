@@ -1,4 +1,7 @@
-module S10 () where 
+module S10 (cbcEncrypt,
+            cbcDecrypt,
+            ecbEncrypt,
+            ecbDecrypt) where 
 
 import           Crypto.Cipher.AES
 import           Data.Bits
@@ -44,6 +47,12 @@ doCbcDecrypt cipher iv ctext ptext = if B.null ctext then ptext else
 
 cbcDecrypt :: B.ByteString -> B.ByteString -> B.ByteString -> B.ByteString
 cbcDecrypt key iv ct = unpad $ doCbcDecrypt (initAES key) iv ct B.empty
+
+ecbEncrypt :: B.ByteString -> C8.ByteString -> C8.ByteString
+ecbEncrypt key ptext = encryptECB (initAES key) (pad ptext)
+
+ecbDecrypt :: B.ByteString -> C8.ByteString -> C8.ByteString
+ecbDecrypt key ctext = unpad $ decryptECB (initAES key) ctext
 
 key = C8.pack "YELLOW SUBMARINE"
 iv = B.pack(take 16 $ (repeat 0 :: [Word8]))
