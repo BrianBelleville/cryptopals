@@ -1,3 +1,7 @@
+module S11 (randByteString
+           ,Algo(..)
+           ,algoDetector)  where
+
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.Set as S
@@ -53,6 +57,6 @@ findDupBlock b = doFind b S.empty
                         else
                           doFind t $ S.insert h s
   
-algoDetector :: RandomGen g => g -> (g -> B.ByteString -> B.ByteString) -> Algo
-algoDetector g bb = if findDupBlock $ bb g ptext then ECB else CBC
+algoDetector :: (B.ByteString -> B.ByteString) -> Algo
+algoDetector bb = if findDupBlock $ bb ptext then ECB else CBC
   where ptext = B.pack $ take (16 * 3) $ repeat 0
