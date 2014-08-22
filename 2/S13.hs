@@ -1,28 +1,19 @@
-import Text.ParserCombinators.Parsec
 import qualified Data.Map as M
+import           Text.ParserCombinators.Parsec
 
+  -- Parser
 record :: GenParser Char st (M.Map String String)
-record = empty <|> pairs
-          
-empty = do eof
-           return M.empty
+record = do t <- pairs
+            eof
+            return $ M.fromList t
 
-pairs =
-  do (k,v) <- pair
-     rest <- remainingPairs
-     return $ M.insert k v rest
+pairs = sepBy pair (char '&')
 
-pair =  do
-  k <- str
-  char '='
-  v <- str
-  return (k,v)
+pair =  do  k <- str
+            char '='
+            v <- str
+            return (k,v)
 
 str = many (noneOf "&=")
 
-remainingPairs =
-  (char '&' >> record)
-  <|> (return M.empty)
-  
 parseRecord input = parse record "user" input
-
