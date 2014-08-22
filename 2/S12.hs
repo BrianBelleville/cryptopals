@@ -36,30 +36,37 @@ crack o = let crack = crackECB $ detectBsize o
                CBC -> Nothing
 
 crackECB :: Int -> (B.ByteString -> B.ByteString) -> B.ByteString
-crackECB b o = C8.pack "I can crack it"
+crackECB b o = target o b []
 
-breakBlock :: Int
-              -> (B.ByteString -> B.ByteString)
-              -> Maybe [Word8]
-breakBlock b o = loop 16 $ Just []
-  where loop _ Nothing  = Nothing
-        loop 0 r = r
-        loop c (Just r) = case breakByte b o r M.empty 255 of 
-          Just w -> loop (c - 1) $ Just $ r ++ [w]
-          Nothing -> Nothing
+target :: (B.ByteString -> B.ByteString) -> Int -> [Word8] -> B.ByteString
+target o b k
+  | (B.length $ o B.empty) == length k = B.pack k
+  | otherwise = target o b $ k ++ [next]
+  where next = case M.lookup (getB o b k) (getGuesses o b k) of
+          Just x -> x
+          Nothing -> 0
 
-breakByte :: Int 
-          -> (B.ByteString -> B.ByteString) 
-          -> [Word8]
-          -> M.Map  B.ByteString Word8
-          -> Word8 
-          -> Maybe Word8
-breakByte b o k m c 
-  | c == 0 = let real = B.take b $ o blob
-             in M.lookup real m
-  | otherwise = let map = M.insert block c m
-                in  breakByte b o k map (c - 1)
-  where blob = getText (b - (1 + length k))
-        text = B.append blob $ B.pack $ k ++ [c]
-        block = B.take b $ o text
+getGuesses :: (B.ByteString -> B.ByteString)
+           -> Int
+           -> [Word8]
+           -> M.Map B.ByteString Word8
+getGuesses o b k = guess 255 M.empty
+  where nn = b - 1
+        p = reverse $ take nn $ reverse k
+        addon = B.append (getText (nn - (length p))) $ B.pack p
+        guess 0 m = m
+        guess c m = guess (c - 1) $ M.insert (B.take b (o (B.snoc addon c))) c m
 
+
+getB :: (B.ByteString -> B.ByteString)
+     -> Int
+     -> [Word8]
+     -> B.ByteString
+getB o b k
+  | l >= b = B.take b $ B.drop ig $ o pad
+  | otherwise = B.take b $ o (getText (b - (1 + l)))
+  where l = length k
+        n = l `div` b
+        ig = n * b
+        pad = getText (b - (l - (n*b) + 1))
+        
