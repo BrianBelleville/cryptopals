@@ -2,7 +2,8 @@ module S10 (cbcEncrypt,
             cbcDecrypt,
             ecbEncrypt,
             ecbDecrypt,
-            unpad ) where 
+            unpad,
+            bxor) where 
 
 import           Crypto.Cipher.AES
 import           Data.Bits
