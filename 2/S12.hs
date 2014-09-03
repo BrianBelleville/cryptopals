@@ -1,7 +1,9 @@
+module S12 (oracle,
+            crack) where
+
 import           S10
 import           S11
 
-import Debug.Trace
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Char8 as C8
