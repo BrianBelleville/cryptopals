@@ -1,5 +1,6 @@
 module S10 (cbcEncrypt,
             cbcDecrypt,
+            cbcDecryptRaw,
             ecbEncrypt,
             ecbDecrypt,
             unpad,
@@ -48,7 +49,9 @@ doCbcDecrypt cipher iv ctext ptext = if B.null ctext then ptext else
                                        in doCbcDecrypt cipher c r $ B.append ptext pn
 
 cbcDecrypt :: B.ByteString -> B.ByteString -> B.ByteString -> B.ByteString
-cbcDecrypt key iv ct = unpad $ doCbcDecrypt (initAES key) iv ct B.empty
+cbcDecrypt key iv ct = unpad $ cbcDecryptRaw  key iv ct
+
+cbcDecryptRaw key iv ct = doCbcDecrypt (initAES key) iv ct B.empty
 
 ecbEncrypt :: B.ByteString -> C8.ByteString -> C8.ByteString
 ecbEncrypt key ptext = encryptECB (initAES key) (pad ptext)
