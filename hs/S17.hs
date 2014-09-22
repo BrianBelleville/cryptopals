@@ -32,13 +32,13 @@ paddingOracle iv c = result $ pkcs7PaddingValidation 16 $ cbcDecryptRaw key iv c
 target = cbcEncrypt key iv $ bstrings !! randIndex
   where (randIndex, _) = randomR (0, length bstrings) (mkStdGen 1235)
 
-attack iv ctext = doAttack B.empty ctext
-  where doAttack p ct 
+attack iv ctext = doAttack B.empty ctext iv
+  where doAttack p ct prev
           | B.null ct = p
           | otherwise = let (targetBlock, rest) = B.splitAt 16 ct
                         in
                          doAttack (B.append p
-                                   (decryptBlock iv targetBlock)) rest
+                                   (decryptBlock prev targetBlock)) rest targetBlock
 
 decryptBlock :: B.ByteString -> B.ByteString -> B.ByteString
 decryptBlock iv c = doDecrypt B.empty
