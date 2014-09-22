@@ -59,7 +59,7 @@ decryptByte iv c k = doDecryptByte (maxBound :: Word8)
                      in bxor iv tamper
         findResult g = let index = 16 - pad
                            ivb = B.index iv index
-                       in g `xor` ivb `xor` (fromIntegral pad)
+                       in g `xor` (fromIntegral pad)
         l = B.length k
         pad = l + 1
 
