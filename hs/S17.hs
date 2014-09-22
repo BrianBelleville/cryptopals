@@ -25,7 +25,7 @@ bstrings = map (B64.decodeLenient . C8.pack)
 key = randByteString (mkStdGen 7812768345) 16
 iv = randByteString (mkStdGen 464378932) 16
 
-paddingOracle iv c = result $ pkcs7PaddingValidation $ cbcDecryptRaw key iv c
+paddingOracle iv c = result $ pkcs7PaddingValidation 16 $ cbcDecryptRaw key iv c
   where result (Just _) = True
         result Nothing = False
 
