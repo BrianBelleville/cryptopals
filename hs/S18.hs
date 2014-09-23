@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 -- flexible instances needed to implement type class instance for
 -- String
-
 module S18 (AsBstring(..)
            ,AsW64(..)
            ,makeKeyStream
@@ -11,15 +10,15 @@ module S18 (AsBstring(..)
            ,ctrEncrypt
            ) where
 
-import S10
+import           S10
 
 import           Crypto.Cipher.AES
 import           Data.Binary.Get
 import           Data.Binary.Put
 import Data.ByteString.Base64 as B64
+import qualified Data.ByteString.Char8 as SC8
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as C8
-import qualified Data.ByteString.Char8 as SC8
 import           Data.LargeWord
 import           Data.Word
 
@@ -28,6 +27,9 @@ class AsBstring a where
 
 instance AsBstring B.ByteString where
   asBstring a = a
+
+instance AsBstring SC8.ByteString where
+  asBstring a = B.fromStrict a
 
 instance AsBstring String where
   asBstring a = C8.pack a
@@ -58,6 +60,15 @@ instance AsW64 Word64 where
 instance AsW64 String where
   asW64 a = asW64 $ asBstring a
 
+class Encryptable a where
+  asStrictBString :: a -> SC8.ByteString
+
+instance Encryptable SC8.ByteString where
+  asStrictBString a = a
+
+instance Encryptable B.ByteString where
+  asStrictBString a = B.toStrict a
+
 makeKeyStream :: (AsBstring a, AsW64 b0, AsW64 b1) => a -> b0 -> b1 -> B.ByteString
 makeKeyStream key nonce ctr = stream bigCtr
   where cipher = initAES $ B.toStrict $ asBstring key
@@ -68,13 +79,15 @@ makeKeyStream key nonce ctr = stream bigCtr
 
 startKeyStream key nonce = makeKeyStream key nonce (0 :: Word64)
 
-doCTR key nonce cipherText = (B.toStrict cipherText) `bxor` (B.toStrict keystream)
-  where keystream = B.take (B.length cipherText) $ (startKeyStream key nonce)
+doCTR :: (AsBstring a, AsW64 b, Encryptable c) => a -> b -> c -> SC8.ByteString
+doCTR key nonce cipherText = strictCipherText `bxor` (B.toStrict keystream)
+  where strictCipherText = asStrictBString cipherText
+        keystream = B.take (fromIntegral (SC8.length strictCipherText)) (startKeyStream key nonce)
 
 ctrEncrypt a b c = doCTR a b c
 
 ctrDecrypt a b c = doCTR a b c
 
-target = C8.fromStrict $ B64.decodeLenient $ SC8.pack "L77na/nrFsKvynd6HzOoG7GHTLXsTVu9qvY/2syLXzhPweyyMTJULu/6/kXX0KSvoOLSFQ=="
+target = B64.decodeLenient $ SC8.pack "L77na/nrFsKvynd6HzOoG7GHTLXsTVu9qvY/2syLXzhPweyyMTJULu/6/kXX0KSvoOLSFQ=="
 
 plaintext = ctrDecrypt "YELLOW SUBMARINE" (0 :: Word64) target
