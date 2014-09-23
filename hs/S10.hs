@@ -39,8 +39,6 @@ doCbc cipher iv ctext ptext = if B.null ptext then ctext else
 cbcEncrypt :: B.ByteString -> B.ByteString -> B.ByteString -> B.ByteString
 cbcEncrypt key iv pt = doCbc (initAES key) iv B.empty (pad pt)
 
--- assumes that the iv is the first block of the ctext, and drops that
--- block
 doCbcDecrypt :: AES -> B.ByteString -> B.ByteString -> B.ByteString -> B.ByteString
 doCbcDecrypt cipher iv ctext ptext = if B.null ctext then ptext else
                                        let
