@@ -10,6 +10,6 @@ pkcs7PaddingValidation block_size b = if validPadding then Just $ unpad b else N
                            head = B.head rb
                            chunk = B.take (fromIntegral head) rb
                        in
-                        if (fromIntegral head) > block_size
-                        then False -- if the pad length is greater than a block size, automatically fail 
+                        if (fromIntegral head) > block_size || (fromIntegral head) == 0
+                        then False -- if the pad length is outside of the expected range immediatly fail
                         else B.foldr (\x a -> (x == head) && a) True chunk -- else check if all are same as head
