@@ -41,26 +41,25 @@ attack iv ctext = doAttack B.empty ctext iv
                                    (decryptBlock prev targetBlock)) rest targetBlock
 
 decryptBlock :: B.ByteString -> B.ByteString -> B.ByteString
-decryptBlock iv c = doDecrypt B.empty
-  where doDecrypt k
-          | B.length k == B.length c = k
-          | otherwise = doDecrypt (B.cons (decryptByte iv c k) k)
+decryptBlock iv c = iv `bxor` (attackIntermediate c B.empty)
 
-decryptByte :: B.ByteString -> B.ByteString -> B.ByteString -> Word8
-decryptByte iv c k = doDecryptByte (maxBound :: Word8)
-  where doDecryptByte 0 = findResult 0
-        doDecryptByte g = if paddingOracle (tamperIv g) c
-                          then  findResult g 
-                          else doDecryptByte (g - 1)
-        tamperIv g = let end = bxor (B.replicate l (fromIntegral pad)) k
-                         tamper = B.append
-                                  (B.snoc (B.replicate (16 - pad) 0) g)
-                                  end
-                     in bxor iv tamper
-        findResult g = let index = 16 - pad
-                           ivb = B.index iv index
-                       in g `xor` (fromIntegral pad)
-        l = B.length k
-        pad = l + 1
+attackIntermediate :: B.ByteString -> B.ByteString -> B.ByteString
+attackIntermediate c k
+  | B.length c == B.length k = k
+  | otherwise = attackIntermediate c (B.cons (search 255) k)
+  where search 0 = figureOut k 0
+        search g = if paddingOracle (makeIV k g) c
+                     then figureOut k g
+                     else search (g - 1) 
+
+makeIV k g = B.append zeros (B.cons g knownEnd)
+  where padding = (B.length k) + 1
+        zeros = B.replicate (16 - padding) 0
+        knownEnd = let want = B.replicate (padding - 1) (fromIntegral padding) in
+          want `bxor` k
+
+figureOut :: B.ByteString -> Word8 -> Word8
+figureOut k g = want `xor` g
+  where want = fromIntegral $ (B.length k) + 1
 
 main = putStrLn $ show $ attack iv target
