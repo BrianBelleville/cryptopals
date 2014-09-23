@@ -30,7 +30,7 @@ paddingOracle iv c = result $ pkcs7PaddingValidation 16 $ cbcDecryptRaw key iv c
         result Nothing = False
 
 target = cbcEncrypt key iv $ bstrings !! randIndex
-  where (randIndex, _) = randomR (0, length bstrings) (mkStdGen 1235)
+  where (randIndex, _) = randomR (0, (length bstrings) - 1) (mkStdGen 1235)
 
 attack iv ctext = doAttack B.empty ctext iv
   where doAttack p ct prev
