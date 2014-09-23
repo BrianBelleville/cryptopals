@@ -22,15 +22,15 @@ bstrings = map (B64.decodeLenient . C8.pack)
            "MDAwMDA4b2xsaW4nIGluIG15IGZpdmUgcG9pbnQgb2g=",
            "MDAwMDA5aXRoIG15IHJhZy10b3AgZG93biBzbyBteSBoYWlyIGNhbiBibG93"]
 
-key = randByteString (mkStdGen 7812768345) 16
-iv = randByteString (mkStdGen 464378932) 16
+key = randByteString (mkStdGen 573826) 16
+iv = randByteString (mkStdGen 926845) 16
 
 paddingOracle iv c = result $ pkcs7PaddingValidation 16 $ cbcDecryptRaw key iv c
   where result (Just _) = True
         result Nothing = False
 
 target = cbcEncrypt key iv $ bstrings !! randIndex
-  where (randIndex, _) = randomR (0, (length bstrings) - 1) (mkStdGen 1235)
+  where (randIndex, _) = randomR (0, (length bstrings) - 1) (mkStdGen 8728467)
 
 attack iv ctext = doAttack B.empty ctext iv
   where doAttack p ct prev
