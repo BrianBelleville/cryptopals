@@ -2,6 +2,15 @@
 -- flexible instances needed to implement type class instance for
 -- String
 
+module S18 (AsBstring(..)
+           ,AsW64(..)
+           ,makeKeyStream
+           ,startKeyStream
+           ,doCTR
+           ,ctrDecrypt
+           ,ctrEncrypt
+           ) where
+
 import S10
 
 import           Crypto.Cipher.AES
