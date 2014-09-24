@@ -57,13 +57,13 @@ letterError b = diff idealFreqMap $ toFreqMap (B.length prepare) $ toCountMap pr
 spaceError b = abs (ideal - spaceFraction)
   where l = B.length b
         ns = B.length $ B.filter (\x -> x /= 0x20) b
-        spaceFraction = (fromIntegral ns) / (fromIntegral l)
+        spaceFraction = (fromIntegral (l - ns)) / (fromIntegral l)
         ideal = 1/6 :: Double
 
 punctuationError b = if fraction > maxPunction then fraction - maxPunction else 0
   where l = B.length b
         a = B.length $ B.filter (\x -> (x >= 0x41 && x <= 0x7a) || x == 0x20) b
-        fraction = (fromIntegral a) / (fromIntegral l)
+        fraction = (fromIntegral (l - a)) / (fromIntegral l)
         maxPunction = 1/10 :: Double
 
 nonPrintableError b = B.foldr (\x b -> if (x < 0x20 || x > 0x7e) && x /= 0x0a then inf else b) 0 b
