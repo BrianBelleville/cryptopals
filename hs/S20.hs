@@ -2,6 +2,9 @@ import           S10
 import           S11
 import           S18
 
+import           Control.Applicative
+import           Control.Monad
+import           Data.Bits
 import qualified Data.ByteString as B
 import           Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Char8 as C8
@@ -41,6 +44,18 @@ idealFreqMap = M.fromList [
   (121,0.01974),
   (122,0.00074) ]               -- z
 
+beginningFreqMap = M.fromList [
+  (116 ,0.1594),
+  (97 ,0.155),
+  (105 ,0.0823),
+  (115 ,0.0775),
+  (111 ,0.0712),
+  (99 ,0.0597),
+  (109 ,0.0426),
+  (102 ,0.0408),
+  (112 ,0.040),
+  (119 ,0.0382) ]
+
 -- this doesn't effect letters outside of the range [A-Z]
 bsToLower = B.map (\x -> if x >= 0x41 && x <= 0x5a then x + 0x20 else x)
 
@@ -49,9 +64,14 @@ toCountMap = B.foldr (M.adjust (+1.0)) defaultMap
 toFreqMap c = M.map (/(fromIntegral c))
 
 diff l r = M.foldr (+) (0 :: Double)  $ M.intersectionWith (\x y -> abs (x - y)) l r
-  
+
 letterError :: B.ByteString -> Double
-letterError b = diff idealFreqMap $ toFreqMap (B.length prepare) $ toCountMap prepare
+letterError = makeLetterError idealFreqMap
+
+beginningLetterError :: B.ByteString -> Double
+beginningLetterError = makeLetterError beginningFreqMap
+
+makeLetterError m b = diff m $ toFreqMap (B.length prepare) $ toCountMap prepare
   where prepare = B.filter (\x -> x >= 0x61 && x <= 0x7a) $ bsToLower b 
 
 spaceError b = abs (ideal - spaceFraction)
@@ -69,4 +89,46 @@ punctuationError b = if fraction > maxPunction then fraction - maxPunction else 
 nonPrintableError b = B.foldr (\x b -> if (x < 0x20 || x > 0x7e) && x /= 0x0a then inf else b) 0 b
   where inf = read "Infinity" :: Double
 
-score b = letterError b + spaceError b + punctuationError b + nonPrintableError b
+score b = letterError b
+          + spaceError b
+          + punctuationError b
+          + nonPrintableError b
+
+beginningScore b = beginningLetterError b
+                   + nonPrintableError b
+
+key = randByteString (mkStdGen 58426) 16
+encrypter = ctrEncrypt key (0 :: Word64)
+
+-- get encrypted lines
+getLines = liftM ((map (encrypter . B64.decodeLenient . C8.pack)) . lines) . readFile
+
+minLen = foldr (min <$> B.length) (maxBound :: Int)
+
+prepare x = take num $ B.transpose x
+  where num = minLen x
+
+solveOne :: B.ByteString -> Word8
+solveOne = makeSolveOne score
+
+solveBeginningOne :: B.ByteString -> Word8
+solveBeginningOne = makeSolveOne beginningScore
+
+makeSolveOne scoreFun b = fst $ foldr checkGuess ((minBound :: Word8), (read "Infinity" :: Double)) [(minBound :: Word8) .. (maxBound :: Word8)]
+  where checkGuess g (key, best) = let s = scoreFun $ B.map (xor g) b in
+                                if s < best then (g, s) else (key, best)
+
+findKey :: [B.ByteString] -> B.ByteString
+findKey = B.pack . map solveOne
+
+printAll = foldl'
+           (\b a -> do b
+                       putStrLn . show $ a)
+           (return ())
+
+solution = do
+  lines <- getLines "20.txt"
+  let (l:ls) = prepare lines
+      k = B.cons (solveBeginningOne l) (findKey ls)
+  printAll $ map (bxor k) lines
+
