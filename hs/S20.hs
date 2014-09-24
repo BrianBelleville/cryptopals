@@ -66,6 +66,7 @@ punctuationError b = if fraction > maxPunction then fraction - maxPunction else 
         fraction = (fromIntegral a) / (fromIntegral l)
         maxPunction = 1/10 :: Double
 
-nonPrintableError b = B.foldr (\x b -> if (x < 0x20 || x > 0x7e) && x /= 0x0a then 1000 else b) 0 b
+nonPrintableError b = B.foldr (\x b -> if (x < 0x20 || x > 0x7e) && x /= 0x0a then inf else b) 0 b
+  where inf = read "Infinity" :: Double
 
 score b = letterError b + spaceError b + punctuationError b + nonPrintableError b
