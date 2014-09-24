@@ -15,7 +15,7 @@ key = randByteString (mkStdGen 71278) 16
 encrypter = ctrEncrypt key (0 :: Word64)
 
 texts =
-  map (encrypter . C8.pack)
+  map (encrypter . B64.decodeLenient . C8.pack)
   ["SSBoYXZlIG1ldCB0aGVtIGF0IGNsb3NlIG9mIGRheQ==",
    "Q29taW5nIHdpdGggdml2aWQgZmFjZXM=",
    "RnJvbSBjb3VudGVyIG9yIGRlc2sgYW1vbmcgZ3JleQ==",
