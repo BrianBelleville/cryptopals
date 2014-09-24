@@ -1,3 +1,4 @@
+import           S10
 import           S11
 import           S18
 
@@ -10,7 +11,7 @@ import           Data.Word
 import           System.Random
 
 key = randByteString (mkStdGen 71278) 16
-  
+
 encrypter = ctrEncrypt key (0 :: Word64)
 
 texts =
@@ -56,4 +57,33 @@ texts =
    "VHJhbnNmb3JtZWQgdXR0ZXJseTo=",
    "QSB0ZXJyaWJsZSBiZWF1dHkgaXMgYm9ybi4="]
 
-printAll = foldl' (\b a -> b >>= (\_ -> putStrLn . show . hex $ a)) (return ()) texts
+printAll = foldl'
+           (\b a -> do b
+                       putStrLn . show . hex $ a)
+           (return ())
+           texts
+
+-- xor for hex string
+hexor a b = bxor au bu
+  where Just au = unhex a
+        Just bu = unhex b
+
+-- asymetrical xor, kind of weird
+-- hex encoded string
+-- -> normal string (put in plain text)
+-- -> hex encoded byte (guess of key)
+asxor :: String -> String -> B.ByteString
+asxor a b = hex $ bxor left right
+  where Just leftS = unhex a
+        left = C8.pack leftS
+        right = C8.pack b
+
+guess = "341B"
+
+getGuess = let Just x = unhex guess in C8.pack x
+
+printGuesses = foldl'
+               (\b a -> do b
+                           putStrLn . show . bxor getGuess $ a)
+               (return ())
+               texts
