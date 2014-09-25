@@ -1,7 +1,5 @@
-import           Control.Monad
-import           Control.Monad.ST.Safe
+import           Control.Monad.ST
 import           Data.Bits
-import           Data.STRef
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as MV
 import           Data.Word
