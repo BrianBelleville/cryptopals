@@ -34,6 +34,9 @@ instance RandomGen MTGen where
   next (MTGen (v, x)) = let v' = if x == 0 then genNums v else v in
                          (getNext v' x, MTGen (v', (x + 1) `mod` 624))
 
+instance Show MTGen where
+  show (MTGen (v, x)) = "(*vector*, " ++ (show x) ++ ")"
+
 getNext :: V.Vector Word32 -> Int -> Int
 getNext v x = let y = v V.! x
                   y' = y `xor` (shift y (-11))
