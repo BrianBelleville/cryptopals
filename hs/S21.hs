@@ -5,6 +5,8 @@ import qualified Data.Vector.Mutable as MV
 import           Data.Word
 import           System.Random
 
+  -- see http://en.wikipedia.org/wiki/Mersenne_twister#Pseudocode
+
 newtype MTGen = MTGen (V.Vector Word32, Int)
 
 makeMTVec :: Int -> V.Vector Word32
@@ -19,7 +21,6 @@ makeMTVec s = runST $ do
     loop 624 v = return ()
     loop x v  = do
       p <- MV.unsafeRead v (x - 1)
-      -- MT[i] := lowest 32 bits of(1812433253 * (MT[i-1] xor (right shift by 30 bits(MT[i-1]))) + i)
       MV.unsafeWrite v x (1812433253 * (p `xor` (shift p (-30))) + (fromIntegral x))
       loop (x + 1) v
 
